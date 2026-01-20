@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { optimizeRoutes } from '../lib/routeOptimizer';
 import { loadRequests, loadResources } from '../lib/storage';
 import RouteMap from './RouteMap';
-import type { OptimizedRoute, UserRequest, ResourceAssignment, Facility, Vehicle, Driver, User, OptimizationError } from '../types';
+import type { OptimizedRoute, Facility, Vehicle, Driver, User, OptimizationError } from '../types';
 
 export default function ResultsTab() {
   const [routes, setRoutes] = useState<OptimizedRoute[]>([]);
@@ -61,7 +61,7 @@ export default function ResultsTab() {
         vehicles: vehiclesResult.data?.length || 0,
         drivers: driversResult.data?.length || 0,
         users: usersResult.data?.length || 0,
-        vehiclesDetail: vehiclesResult.data?.map(v => ({
+        vehiclesDetail: vehiclesResult.data?.map((v: Vehicle) => ({
           name: v.name,
           capacity: v.capacity,
           welfare_vehicle: v.welfare_vehicle,
@@ -242,7 +242,7 @@ export default function ResultsTab() {
                 <div>
                   <h4 className="text-sm font-semibold text-gray-700 mb-3">停車地</h4>
                   <div className="space-y-3">
-                    {route.stops.map((stop, stopIndex) => (
+                    {route.stops.map((stop) => (
                       <div
                         key={stop.stop_number}
                         className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"

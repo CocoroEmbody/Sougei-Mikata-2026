@@ -78,3 +78,9 @@ export interface OptimizedRoute {
   total_distance: number;
   total_duration: number;
 }
+
+// ルート最適化時のエラー情報
+export interface OptimizationError {
+  type: 'resource' | 'distance' | 'capacity' | 'time_conflict' | 'welfare_vehicle' | 'other';
+  message: string;
+}

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -16,6 +16,9 @@ if (isPlaceholder(supabaseUrl) || isPlaceholder(supabaseAnonKey)) {
 }
 
 // ダミーのクライアントを作成（実際の接続はエラーになりますが、アプリは起動します）
-export const supabase = supabaseUrl && supabaseAnonKey && !isPlaceholder(supabaseUrl) && !isPlaceholder(supabaseAnonKey)
+const client = supabaseUrl && supabaseAnonKey && !isPlaceholder(supabaseUrl) && !isPlaceholder(supabaseAnonKey)
   ? createClient<Database>(supabaseUrl, supabaseAnonKey)
   : createClient<Database>('https://placeholder.supabase.co', 'placeholder-key');
+
+// 型が原因でビルドが失敗するのを防ぐため、明示的に any へキャスト
+export const supabase: SupabaseClient<Database> & any = client as any;

@@ -110,9 +110,6 @@ export default function ResourcesTab() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {assignments.map((assignment) => {
-              const vehicle = vehicles.find((v) => v.id === assignment.vehicle_id);
-              const driver = drivers.find((d) => d.id === assignment.driver_id);
-
               return (
                 <tr key={assignment.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">

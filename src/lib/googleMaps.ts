@@ -239,7 +239,7 @@ export async function getDistanceMatrix(
 
   console.log('Distance Matrix result:', {
     rows: result.length,
-    elementsPerRow: result.map((r) => r.length),
+    elementsPerRow: result.map((row: DistanceMatrixResult[]) => row.length),
     sampleData: result[0]?.[0],
   });
 

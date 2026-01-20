@@ -4,7 +4,7 @@ import { saveRequests, loadRequests } from '../lib/storage';
 import type { UserRequest, User, Facility } from '../types';
 
 export default function RequestsTab() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [, setUsers] = useState<User[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [requests, setRequests] = useState<UserRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,21 +27,24 @@ export default function RequestsTab() {
       if (usersResult.error) throw usersResult.error;
       if (facilitiesResult.error) throw facilitiesResult.error;
 
-      setUsers(usersResult.data || []);
-      setFacilities(facilitiesResult.data || []);
+      const usersData = (usersResult.data as User[] | null) ?? [];
+      const facilitiesData = (facilitiesResult.data as Facility[] | null) ?? [];
+
+      setUsers(usersData);
+      setFacilities(facilitiesData);
 
       // 保存されたリクエストがない場合は初期化
       const saved = loadRequests();
       if (saved.length === 0) {
-        const initialRequests: UserRequest[] = (usersResult.data || []).map((user) => ({
+        const initialRequests: UserRequest[] = usersData.map((user: User) => ({
           user,
           selected: false,
-          target_facility_id: user.default_facility_id || facilitiesResult.data?.[0]?.id || '',
+          target_facility_id: user.default_facility_id || facilitiesData?.[0]?.id || '',
         }));
         setRequests(initialRequests);
       } else {
         // 保存されたリクエストと現在のユーザーをマージ
-        const userMap = new Map(usersResult.data?.map((u) => [u.id, u]) || []);
+        const userMap = new Map(usersData.map((u: User) => [u.id, u]) || []);
         const updatedRequests = saved
           .map((req) => {
             const user = userMap.get(req.user.id);
@@ -49,18 +52,18 @@ export default function RequestsTab() {
             return {
               ...req,
               user, // 最新のユーザー情報で更新
-              target_facility_id: req.target_facility_id || user.default_facility_id || '',
+              target_facility_id: req.target_facility_id || user.default_facility_id || facilitiesData?.[0]?.id || '',
             };
           })
           .filter((req): req is UserRequest => req !== null);
 
         // 新しいユーザーを追加
         const existingUserIds = new Set(saved.map((r) => r.user.id));
-        const newUsers = (usersResult.data || []).filter((u) => !existingUserIds.has(u.id));
-        const newRequests: UserRequest[] = newUsers.map((user) => ({
+        const newUsers = usersData.filter((u: User) => !existingUserIds.has(u.id));
+        const newRequests: UserRequest[] = newUsers.map((user: User) => ({
           user,
           selected: false,
-          target_facility_id: user.default_facility_id || facilitiesResult.data?.[0]?.id || '',
+          target_facility_id: user.default_facility_id || facilitiesData?.[0]?.id || '',
         }));
 
         setRequests([...updatedRequests, ...newRequests]);

@@ -1,11 +1,5 @@
 import type { UserRequest, ResourceAssignment, OptimizedRoute, RouteStop, Facility, Vehicle, Driver, User } from '../types';
 import { getDistanceMatrix, type DistanceMatrixResult } from './googleMaps';
-import { format } from 'date-fns';
-
-interface TimeWindow {
-  start: string;
-  end: string;
-}
 
 /**
  * 時間を30分のウィンドウにグループ化
@@ -15,20 +9,6 @@ function getTimeWindow(pickupTime: string | undefined): string {
   const [hours, minutes] = pickupTime.split(':').map(Number);
   const windowMinutes = Math.floor(minutes / 30) * 30;
   return `${String(hours).padStart(2, '0')}:${String(windowMinutes).padStart(2, '0')}`;
-}
-
-/**
- * 時間ウィンドウ内かチェック
- */
-function isInTimeWindow(time: string, window: string): boolean {
-  if (!time) return window === '00:00';
-  const [tHours, tMinutes] = time.split(':').map(Number);
-  const [wHours, wMinutes] = window.split(':').map(Number);
-  
-  const tTotalMinutes = tHours * 60 + tMinutes;
-  const wTotalMinutes = wHours * 60 + wMinutes;
-  
-  return tTotalMinutes >= wTotalMinutes && tTotalMinutes < wTotalMinutes + 30;
 }
 
 /**
@@ -135,7 +115,7 @@ function calculateStraightLineDistance(
 }
 
 export interface OptimizationError {
-  type: 'capacity' | 'welfare_vehicle' | 'time_conflict' | 'other';
+  type: 'resource' | 'distance' | 'capacity' | 'time_conflict' | 'welfare_vehicle' | 'other';
   message: string;
 }
 
@@ -196,9 +176,6 @@ export async function optimizeRoutes(
 
     // 時間ウィンドウごとに処理
     for (const [timeWindow, timeRequests] of timeGroups) {
-      // 位置ごとにグループ化
-      const locationGroups = groupByLocation(timeRequests);
-
       // この施設のすべてのルートを取得
       const allFacilityRoutes = routes.filter((r) => r.facility_id === facility.id);
       
@@ -289,7 +266,7 @@ export async function optimizeRoutes(
           });
 
         // 各位置グループを処理（同じ場所の利用者を1つのルートにまとめる）
-        for (const [locationKey, locationRequests] of welfareLocationGroups) {
+        for (const [, locationRequests] of welfareLocationGroups) {
           // この位置グループの利用者を1つのルートにまとめる
           let assigned = false;
           
@@ -600,7 +577,7 @@ export async function optimizeRoutes(
         });
 
         // 各位置グループを処理
-        for (const [locationKey, locationRequests] of regularLocationGroups) {
+        for (const [, locationRequests] of regularLocationGroups) {
           // この位置グループの利用者を可能な限りまとめる
           let remainingRequests = [...locationRequests];
 
@@ -620,14 +597,6 @@ export async function optimizeRoutes(
 
               const currentUsers = existingRoute ? existingRoute.stops.length : 0;
               
-              // 既存のルートの車椅子利用者数をカウント（通常利用者用の車両なので0のはずだが、念のため）
-              const currentWheelchairUsers = existingRoute
-                ? existingRoute.stops.filter((stop) => {
-                    const user = users.find((u) => u.id === stop.user_id);
-                    return user?.welfare_vehicle_required;
-                  }).length
-                : 0;
-
               // 通常利用者のみを考慮（車椅子利用者は通常の車両には乗せない）
               const regularUsersToAdd = remainingRequests.filter(
                 (req) => !req.user.welfare_vehicle_required
