@@ -177,11 +177,11 @@ export async function optimizeRoutes(
     // 時間ウィンドウごとに処理
     for (const [timeWindow, timeRequests] of timeGroups) {
       // この施設のすべてのルートを取得
-      const allFacilityRoutes = routes.filter((r) => r.facility_id === facility.id);
+      let allFacilityRoutes = routes.filter((r) => r.facility_id === facility.id);
       
       // この時間帯で使用されているルートを取得
       // ルート内の停車地の時間を確認して、同じ時間帯のリクエストと競合する可能性があるルートを除外
-      const facilityTimeRoutes = allFacilityRoutes.filter((r) => {
+      let facilityTimeRoutes = allFacilityRoutes.filter((r) => {
         // ルート内の停車地の時間を確認
         for (const stop of r.stops) {
           const stopTimeWindow = getTimeWindow(stop.arrival_time);
@@ -367,7 +367,7 @@ export async function optimizeRoutes(
                 }).filter((stop): stop is RouteStop => stop !== null);
 
                 if (stops.length > 0) {
-                  routes.push({
+                  const newRoute: OptimizedRoute = {
                     vehicle_id: vehicle.id,
                     vehicle_name: vehicle.name,
                     driver_id: driver.id,
@@ -377,7 +377,10 @@ export async function optimizeRoutes(
                     stops,
                     total_distance: 0,
                     total_duration: 0,
-                  });
+                  };
+                  routes.push(newRoute);
+                  // 同じ時間帯・施設内でのリソース重複利用を避けるため、ローカルの一覧にも追加
+                  facilityTimeRoutes.push(newRoute);
                   assigned = true;
                   break;
                 }
@@ -502,7 +505,7 @@ export async function optimizeRoutes(
                   }).filter((stop): stop is RouteStop => stop !== null);
 
                   if (stops.length > 0) {
-                    routes.push({
+                    const newRoute: OptimizedRoute = {
                       vehicle_id: vehicle.id,
                       vehicle_name: vehicle.name,
                       driver_id: driver.id,
@@ -512,7 +515,9 @@ export async function optimizeRoutes(
                       stops,
                       total_distance: 0,
                       total_duration: 0,
-                    });
+                    };
+                    routes.push(newRoute);
+                    facilityTimeRoutes.push(newRoute);
                     assigned = true;
                     break;
                   }
@@ -631,7 +636,7 @@ export async function optimizeRoutes(
                   }).filter((stop): stop is RouteStop => stop !== null);
 
                   if (stops.length > 0) {
-                    routes.push({
+                    const newRoute: OptimizedRoute = {
                       vehicle_id: vehicle.id,
                       vehicle_name: vehicle.name,
                       driver_id: driver.id,
@@ -641,7 +646,9 @@ export async function optimizeRoutes(
                       stops,
                       total_distance: 0,
                       total_duration: 0,
-                    });
+                    };
+                    routes.push(newRoute);
+                    facilityTimeRoutes.push(newRoute);
                     assigned = true;
                     remainingRequests = remainingRequests.slice(usersToAdd.length);
                     break;
@@ -732,7 +739,7 @@ export async function optimizeRoutes(
                     }).filter((stop): stop is RouteStop => stop !== null);
 
                     if (stops.length > 0) {
-                      routes.push({
+                      const newRoute: OptimizedRoute = {
                         vehicle_id: vehicle.id,
                         vehicle_name: vehicle.name,
                         driver_id: driver.id,
@@ -742,7 +749,9 @@ export async function optimizeRoutes(
                         stops,
                         total_distance: 0,
                         total_duration: 0,
-                      });
+                      };
+                      routes.push(newRoute);
+                      facilityTimeRoutes.push(newRoute);
                       assigned = true;
                       remainingRequests = remainingRequests.slice(usersToAdd.length);
                       break;

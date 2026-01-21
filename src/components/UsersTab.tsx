@@ -68,12 +68,16 @@ export default function UsersTab() {
     setGeocoding(true);
     try {
       const result = await geocodeAddress(searchAddress);
-      setFormData({
-        ...formData,
+
+      // 直前のフォーム状態をベースに安全にマージする
+      setFormData((prev) => ({
+        ...prev,
         address: result.formatted_address,
         lat: result.lat,
         lng: result.lng,
-      });
+      }));
+
+      // 検索入力欄だけをクリアする（住所フィールドは結果で上書きされる）
       setSearchAddress('');
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -89,12 +93,15 @@ export default function UsersTab() {
     setGeocodingPickup(true);
     try {
       const result = await geocodeAddress(searchPickupAddress);
-      setFormData({
-        ...formData,
+
+      // 直前のフォーム状態をベースに安全にマージする
+      setFormData((prev) => ({
+        ...prev,
         pickup_location_address: result.formatted_address,
         pickup_lat: result.lat,
         pickup_lng: result.lng,
-      });
+      }));
+
       setSearchPickupAddress('');
     } catch (error) {
       console.error('Geocoding error:', error);
