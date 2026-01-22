@@ -52,12 +52,16 @@ export default function FacilitiesTab() {
     setGeocoding(true);
     try {
       const result = await geocodeAddress(searchAddress);
-      setFormData({
-        ...formData,
+      
+      // 直前のフォーム状態をベースに安全にマージする（関数形式で状態更新）
+      setFormData((prev) => ({
+        ...prev,
         address: result.formatted_address,
         lat: result.lat,
         lng: result.lng,
-      });
+      }));
+      
+      // 検索入力欄だけをクリアする（住所フィールドは結果で上書きされる）
       setSearchAddress('');
     } catch (error) {
       console.error('Geocoding error:', error);
@@ -142,6 +146,8 @@ export default function FacilitiesTab() {
       lat: facility.lat,
       lng: facility.lng,
     });
+    // 編集時に検索入力欄をリセット
+    setSearchAddress('');
     setShowModal(true);
   };
 
@@ -167,10 +173,11 @@ export default function FacilitiesTab() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">施設管理</h2>
-        <button
+          <button
           onClick={() => {
             setEditingFacility(null);
             setFormData({ name: '', address: '', lat: 0, lng: 0 });
+            setSearchAddress('');
             setShowModal(true);
           }}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -246,7 +253,7 @@ export default function FacilitiesTab() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -288,10 +295,15 @@ export default function FacilitiesTab() {
                 <input
                   type="text"
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+                {formData.lat !== 0 && formData.lng !== 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    座標: {formData.lat.toFixed(6)}, {formData.lng.toFixed(6)}
+                  </p>
+                )}
               </div>
 
               <div className="mb-4">
@@ -299,10 +311,13 @@ export default function FacilitiesTab() {
                 <input
                   type="number"
                   step="any"
-                  value={formData.lat}
-                  onChange={(e) => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
+                  value={formData.lat || 0}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, lat: parseFloat(e.target.value) || 0 }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {formData.lat !== 0 && (
+                  <p className="text-xs text-gray-500 mt-1">緯度: {formData.lat.toFixed(6)}</p>
+                )}
               </div>
 
               <div className="mb-6">
@@ -310,10 +325,13 @@ export default function FacilitiesTab() {
                 <input
                   type="number"
                   step="any"
-                  value={formData.lng}
-                  onChange={(e) => setFormData({ ...formData, lng: parseFloat(e.target.value) || 0 })}
+                  value={formData.lng || 0}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, lng: parseFloat(e.target.value) || 0 }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                {formData.lng !== 0 && (
+                  <p className="text-xs text-gray-500 mt-1">経度: {formData.lng.toFixed(6)}</p>
+                )}
               </div>
 
               <div className="flex gap-3 justify-end">
@@ -323,6 +341,7 @@ export default function FacilitiesTab() {
                     setShowModal(false);
                     setEditingFacility(null);
                     setFormData({ name: '', address: '', lat: 0, lng: 0 });
+                    setSearchAddress('');
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >

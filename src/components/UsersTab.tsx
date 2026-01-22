@@ -194,6 +194,8 @@ export default function UsersTab() {
         pickup_lng: undefined,
         pickup_time: '',
       });
+      setSearchAddress('');
+      setSearchPickupAddress('');
       loadUsers();
     } catch (error) {
       console.error('Error saving user:', error);
@@ -217,6 +219,9 @@ export default function UsersTab() {
       pickup_lng: user.pickup_lng,
       pickup_time: user.pickup_time || '',
     });
+    // 編集時に検索入力欄をリセット
+    setSearchAddress('');
+    setSearchPickupAddress('');
     setShowModal(true);
   };
 
@@ -259,6 +264,8 @@ export default function UsersTab() {
               pickup_lng: undefined,
               pickup_time: '',
             });
+            setSearchAddress('');
+            setSearchPickupAddress('');
             setShowModal(true);
           }}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -351,7 +358,7 @@ export default function UsersTab() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
@@ -393,10 +400,15 @@ export default function UsersTab() {
                   <input
                     type="text"
                     value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, address: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
+                  {formData.lat !== 0 && formData.lng !== 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      座標: {formData.lat.toFixed(6)}, {formData.lng.toFixed(6)}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -404,10 +416,13 @@ export default function UsersTab() {
                   <input
                     type="number"
                     step="any"
-                    value={formData.lat}
-                    onChange={(e) => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
+                    value={formData.lat || 0}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, lat: parseFloat(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {formData.lat !== 0 && (
+                    <p className="text-xs text-gray-500 mt-1">緯度: {formData.lat.toFixed(6)}</p>
+                  )}
                 </div>
 
                 <div>
@@ -415,10 +430,13 @@ export default function UsersTab() {
                   <input
                     type="number"
                     step="any"
-                    value={formData.lng}
-                    onChange={(e) => setFormData({ ...formData, lng: parseFloat(e.target.value) || 0 })}
+                    value={formData.lng || 0}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, lng: parseFloat(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {formData.lng !== 0 && (
+                    <p className="text-xs text-gray-500 mt-1">経度: {formData.lng.toFixed(6)}</p>
+                  )}
                 </div>
 
                 <div className="md:col-span-2">
@@ -427,7 +445,7 @@ export default function UsersTab() {
                   </label>
                   <select
                     value={formData.default_facility_id}
-                    onChange={(e) => setFormData({ ...formData, default_facility_id: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, default_facility_id: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">選択してください</option>
@@ -445,7 +463,7 @@ export default function UsersTab() {
                       type="checkbox"
                       checked={formData.welfare_vehicle_required}
                       onChange={(e) =>
-                        setFormData({ ...formData, welfare_vehicle_required: e.target.checked })
+                        setFormData((prev) => ({ ...prev, welfare_vehicle_required: e.target.checked }))
                       }
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
@@ -460,10 +478,10 @@ export default function UsersTab() {
                   <select
                     value={formData.pickup_location_type}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setFormData((prev) => ({
+                        ...prev,
                         pickup_location_type: e.target.value as PickupLocationType,
-                      })
+                      }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
@@ -483,7 +501,7 @@ export default function UsersTab() {
                     type="text"
                     value={formData.pickup_location_name}
                     onChange={(e) =>
-                      setFormData({ ...formData, pickup_location_name: e.target.value })
+                      setFormData((prev) => ({ ...prev, pickup_location_name: e.target.value }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="例: 〇〇駅、〇〇小学校など"
@@ -527,10 +545,15 @@ export default function UsersTab() {
                     type="text"
                     value={formData.pickup_location_address}
                     onChange={(e) =>
-                      setFormData({ ...formData, pickup_location_address: e.target.value })
+                      setFormData((prev) => ({ ...prev, pickup_location_address: e.target.value }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {formData.pickup_lat && formData.pickup_lng && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      座標: {formData.pickup_lat.toFixed(6)}, {formData.pickup_lng.toFixed(6)}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -542,10 +565,10 @@ export default function UsersTab() {
                     step="any"
                     value={formData.pickup_lat || ''}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setFormData((prev) => ({
+                        ...prev,
                         pickup_lat: e.target.value ? parseFloat(e.target.value) : undefined,
-                      })
+                      }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -560,10 +583,10 @@ export default function UsersTab() {
                     step="any"
                     value={formData.pickup_lng || ''}
                     onChange={(e) =>
-                      setFormData({
-                        ...formData,
+                      setFormData((prev) => ({
+                        ...prev,
                         pickup_lng: e.target.value ? parseFloat(e.target.value) : undefined,
-                      })
+                      }))
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -576,7 +599,7 @@ export default function UsersTab() {
                   <input
                     type="time"
                     value={formData.pickup_time}
-                    onChange={(e) => setFormData({ ...formData, pickup_time: e.target.value })}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, pickup_time: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -602,6 +625,8 @@ export default function UsersTab() {
                       pickup_lng: undefined,
                       pickup_time: '',
                     });
+                    setSearchAddress('');
+                    setSearchPickupAddress('');
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
