@@ -213,7 +213,9 @@ export default function FacilitiesTab() {
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">{facility.address}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {facility.lat.toFixed(6)}, {facility.lng.toFixed(6)}
+                  {facility.lat != null && facility.lng != null
+                    ? `${facility.lat.toFixed(6)}, ${facility.lng.toFixed(6)}`
+                    : '座標未設定'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button
@@ -299,7 +301,7 @@ export default function FacilitiesTab() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-                {formData.lat !== 0 && formData.lng !== 0 && (
+                {formData.lat != null && formData.lat !== 0 && formData.lng != null && formData.lng !== 0 && (
                   <p className="text-xs text-gray-500 mt-1">
                     座標: {formData.lat.toFixed(6)}, {formData.lng.toFixed(6)}
                   </p>
@@ -315,7 +317,7 @@ export default function FacilitiesTab() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, lat: parseFloat(e.target.value) || 0 }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {formData.lat !== 0 && (
+                {formData.lat != null && formData.lat !== 0 && (
                   <p className="text-xs text-gray-500 mt-1">緯度: {formData.lat.toFixed(6)}</p>
                 )}
               </div>
@@ -329,7 +331,7 @@ export default function FacilitiesTab() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, lng: parseFloat(e.target.value) || 0 }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                {formData.lng !== 0 && (
+                {formData.lng != null && formData.lng !== 0 && (
                   <p className="text-xs text-gray-500 mt-1">経度: {formData.lng.toFixed(6)}</p>
                 )}
               </div>

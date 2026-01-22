@@ -562,7 +562,7 @@ export default function UsersTab() {
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  {formData.pickup_lat && formData.pickup_lng && (
+                  {formData.pickup_lat != null && formData.pickup_lng != null && (
                     <p className="text-xs text-gray-500 mt-1">
                       座標: {formData.pickup_lat.toFixed(6)}, {formData.pickup_lng.toFixed(6)}
                     </p>
