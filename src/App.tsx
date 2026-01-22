@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Building2, Users, Truck, UserCheck, Calendar, Settings, Route } from 'lucide-react';
 import FacilitiesTab from './components/FacilitiesTab';
 import UsersTab from './components/UsersTab';
@@ -14,6 +14,16 @@ type DataSubTab = 'facilities' | 'users' | 'vehicles' | 'drivers';
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('data');
   const [activeDataTab, setActiveDataTab] = useState<DataSubTab>('facilities');
+
+  // デバッグ用: アプリが正常にレンダリングされているか確認
+  useEffect(() => {
+    console.log('✅ App component mounted successfully');
+    console.log('Environment variables:', {
+      hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
+      hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+      hasGoogleMapsKey: !!import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200">
