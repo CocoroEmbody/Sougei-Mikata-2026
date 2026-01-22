@@ -19,13 +19,27 @@ export default function RequestsTab() {
 
   const loadData = async () => {
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      if (!supabaseUrl || supabaseUrl.includes('your-') || supabaseUrl === '') {
+        console.warn('Supabase環境変数が設定されていません');
+        return;
+      }
+
       const [usersResult, facilitiesResult] = await Promise.all([
         supabase.from('users').select('*').order('name'),
         supabase.from('facilities').select('*').order('name'),
       ]);
 
-      if (usersResult.error) throw usersResult.error;
-      if (facilitiesResult.error) throw facilitiesResult.error;
+      if (usersResult.error) {
+        console.error('Error loading users:', usersResult.error);
+        setUsers([]);
+        return;
+      }
+      if (facilitiesResult.error) {
+        console.error('Error loading facilities:', facilitiesResult.error);
+        setFacilities([]);
+        return;
+      }
 
       const usersData = (usersResult.data as User[] | null) ?? [];
       const facilitiesData = (facilitiesResult.data as Facility[] | null) ?? [];

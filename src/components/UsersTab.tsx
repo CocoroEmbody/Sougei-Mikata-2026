@@ -36,16 +36,29 @@ export default function UsersTab() {
 
   const loadUsers = async () => {
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      if (!supabaseUrl || supabaseUrl.includes('your-') || supabaseUrl === '') {
+        console.warn('Supabase環境変数が設定されていません');
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading users:', error);
+        // エラー時もアプリを継続する
+        setUsers([]);
+        return;
+      }
       setUsers(data || []);
     } catch (error) {
       console.error('Error loading users:', error);
-      alert('利用者の読み込みに失敗しました');
+      // エラー時もアプリを継続する
+      setUsers([]);
     } finally {
       setLoading(false);
     }

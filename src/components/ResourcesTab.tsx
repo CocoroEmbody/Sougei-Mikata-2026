@@ -20,19 +20,36 @@ export default function ResourcesTab() {
 
   const loadData = async () => {
     try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      if (!supabaseUrl || supabaseUrl.includes('your-') || supabaseUrl === '') {
+        console.warn('Supabase環境変数が設定されていません');
+        setLoading(false);
+        return;
+      }
+
       const [vehiclesResult, driversResult] = await Promise.all([
         supabase.from('vehicles').select('*').order('name'),
         supabase.from('drivers').select('*').order('name'),
       ]);
 
-      if (vehiclesResult.error) throw vehiclesResult.error;
-      if (driversResult.error) throw driversResult.error;
+      if (vehiclesResult.error) {
+        console.error('Error loading vehicles:', vehiclesResult.error);
+        setVehicles([]);
+      } else {
+        setVehicles(vehiclesResult.data || []);
+      }
 
-      setVehicles(vehiclesResult.data || []);
-      setDrivers(driversResult.data || []);
+      if (driversResult.error) {
+        console.error('Error loading drivers:', driversResult.error);
+        setDrivers([]);
+      } else {
+        setDrivers(driversResult.data || []);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
-      alert('データの読み込みに失敗しました');
+      // エラー時もアプリを継続する
+      setVehicles([]);
+      setDrivers([]);
     } finally {
       setLoading(false);
     }
