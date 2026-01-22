@@ -404,7 +404,7 @@ export default function UsersTab() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
-                  {formData.lat !== 0 && formData.lng !== 0 && (
+                  {formData.lat !== undefined && formData.lat !== 0 && formData.lng !== undefined && formData.lng !== 0 && (
                     <p className="text-xs text-gray-500 mt-1">
                       座標: {formData.lat.toFixed(6)}, {formData.lng.toFixed(6)}
                     </p>
@@ -420,7 +420,7 @@ export default function UsersTab() {
                     onChange={(e) => setFormData((prev) => ({ ...prev, lat: parseFloat(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  {formData.lat !== 0 && (
+                  {formData.lat !== undefined && formData.lat !== 0 && (
                     <p className="text-xs text-gray-500 mt-1">緯度: {formData.lat.toFixed(6)}</p>
                   )}
                 </div>
@@ -434,7 +434,7 @@ export default function UsersTab() {
                     onChange={(e) => setFormData((prev) => ({ ...prev, lng: parseFloat(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  {formData.lng !== 0 && (
+                  {formData.lng !== undefined && formData.lng !== 0 && (
                     <p className="text-xs text-gray-500 mt-1">経度: {formData.lng.toFixed(6)}</p>
                   )}
                 </div>
