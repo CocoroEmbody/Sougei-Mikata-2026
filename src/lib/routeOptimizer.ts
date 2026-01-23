@@ -857,7 +857,17 @@ export async function optimizeRoutes(
           rows: matrix.length,
           elementsPerRow: matrix.map(r => r.length),
           firstRowFirstElement: matrix[0]?.[0],
+          expectedRows: origins.length,
+          expectedCols: destinations.length,
         });
+
+        // 距離行列の構造を検証
+        if (matrix.length !== origins.length) {
+          console.error(`距離行列の行数が一致しません: 期待値=${origins.length}, 実際=${matrix.length}`);
+        }
+        if (matrix.length > 0 && matrix[0].length !== destinations.length) {
+          console.error(`距離行列の列数が一致しません: 期待値=${destinations.length}, 実際=${matrix[0].length}`);
+        }
       } catch (error) {
         console.error('Distance Matrix API呼び出しエラー:', error);
         throw error;
@@ -865,40 +875,76 @@ export async function optimizeRoutes(
 
       // 距離行列の計算: matrix[i][j] は origin[i] から destination[j] への距離
       // ルート: 施設 -> stop1 -> stop2 -> ... -> stopN -> 施設
-      // origins = [施設, stop1, stop2, ..., stopN]
-      // destinations = [stop1, stop2, ..., stopN, 施設]
+      // origins = [施設, stop1, stop2, ..., stopN] (length = N+1)
+      // destinations = [stop1, stop2, ..., stopN, 施設] (length = N+1)
       // 連続する地点間の距離を累積: matrix[i][i]がorigin[i]からdestination[i]への距離
       route.total_distance = 0;
       route.total_duration = 0;
 
-      // origins[i] から destinations[i] への距離を累積
-      // matrix[i][i] が origin[i] から destination[i] への距離
-      for (let i = 0; i < matrix.length && i < destinations.length; i++) {
-        const row = matrix[i];
-        if (!row) {
-          console.warn(`Row ${i} is missing`);
+      // 各セグメントの距離を累積
+      // セグメント数は origins.length = destinations.length = route.stops.length + 1
+      const numSegments = origins.length;
+      console.log(`距離計算: ${numSegments}セグメント`, {
+        matrixRows: matrix.length,
+        matrixCols: matrix[0]?.length,
+        originsCount: origins.length,
+        destinationsCount: destinations.length,
+      });
+
+      for (let i = 0; i < numSegments; i++) {
+        if (i >= matrix.length) {
+          console.warn(`Row ${i} is out of bounds (matrix has ${matrix.length} rows)`);
           continue;
         }
 
-        // destinationsのインデックス（連続する地点なので i を使う）
-        if (row.length > i && row[i]) {
-          const element = row[i];
-          if (element && typeof element.distance === 'number') {
-            route.total_distance += element.distance;
-            console.log(`Segment ${i}: ${element.distance}m from origin[${i}] to destination[${i}]`);
+        const row = matrix[i];
+        if (!row || !Array.isArray(row)) {
+          console.warn(`Row ${i} is missing or invalid`);
+          continue;
+        }
+
+        if (i >= row.length) {
+          console.warn(`Column ${i} is out of bounds (row ${i} has ${row.length} columns)`);
+          continue;
+        }
+
+        const element = row[i];
+        if (!element) {
+          console.warn(`Element [${i}][${i}] is missing`);
+          continue;
+        }
+
+        // 距離と時間を累積（メートルと秒の単位で）
+        // 異常値チェック: 1セグメントが1000km以上は異常（通常は数km〜数十km）
+        if (typeof element.distance === 'number' && element.distance >= 0) {
+          if (element.distance > 1000000) {
+            console.error(`異常な距離値が検出されました: Segment ${i} = ${element.distance}m (${(element.distance / 1000).toFixed(2)}km)`);
+            console.error('距離行列の要素:', {
+              origin: origins[i],
+              destination: destinations[i],
+              element: element,
+              rowIndex: i,
+              colIndex: i,
+            });
           }
-          if (element && typeof element.duration === 'number') {
-            route.total_duration += element.duration;
-          }
+          route.total_distance += element.distance;
+          console.log(`Segment ${i}: ${element.distance}m (${(element.distance / 1000).toFixed(2)}km) from origin[${i}] to destination[${i}]`);
         } else {
-          console.warn(`Element [${i}][${i}] is missing in matrix`, {
-            rowLength: row.length,
-            availableIndices: row.map((e: any, idx: number) => ({ idx, hasData: !!e })),
-          });
+          console.warn(`Invalid distance at [${i}][${i}]:`, element.distance);
+        }
+
+        if (typeof element.duration === 'number' && element.duration >= 0) {
+          // 異常値チェック: 1セグメントが10時間以上は異常（通常は数分〜数十分）
+          if (element.duration > 36000) {
+            console.error(`異常な時間値が検出されました: Segment ${i} = ${element.duration}s (${(element.duration / 60).toFixed(1)}分)`);
+          }
+          route.total_duration += element.duration;
+        } else {
+          console.warn(`Invalid duration at [${i}][${i}]:`, element.duration);
         }
       }
 
-      console.log(`計算完了: 総距離=${route.total_distance}m, 総時間=${route.total_duration}s`);
+      console.log(`計算完了: 総距離=${route.total_distance}m (${(route.total_distance / 1000).toFixed(2)}km), 総時間=${route.total_duration}s (${(route.total_duration / 60).toFixed(1)}分)`);
     } catch (error) {
       console.error('Distance matrix calculation failed:', error);
       // エラーが発生してもルートは表示できるようにする
